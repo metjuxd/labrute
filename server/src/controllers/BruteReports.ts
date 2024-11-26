@@ -4,7 +4,7 @@ import {
   ExpectedError,
 } from '@labrute/core';
 import {
-  BruteReportReason, BruteReportStatus, InventoryItemType, PrismaClient,
+  BruteReportReason, BruteReportStatus, InventoryItemType, NotificationSeverity, PrismaClient,
 } from '@labrute/prisma';
 import type { Request, Response } from 'express';
 import moment from 'moment';
@@ -24,19 +24,26 @@ const BruteReports = {
 
       const user = await prisma.user.findFirst({
         where: { id: authed.id },
-        select: { admin: true },
+        select: { admin: true, moderator: true },
       });
 
-      // Admin only
-      if (!user?.admin) {
+      // Admin or moderator only
+      if (!user?.admin && !user?.moderator) {
         throw new ExpectedError(translate('unauthorized', authed));
       }
+
+      // Order by count for pending, by handledAt for others
+      const orderBy = req.params.status === BruteReportStatus.pending
+        ? { count: 'desc' } as const
+        : { handledAt: 'desc' } as const;
 
       // Get reports
       const reports = await prisma.bruteReport.findMany({
         where: {
           status: req.params.status,
         },
+        take: 20,
+        skip: +req.params.page * 20,
         include: {
           brute: {
             select: {
@@ -50,10 +57,14 @@ const BruteReports = {
               name: true,
             },
           },
+          handler: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
-        orderBy: {
-          count: 'desc',
-        },
+        orderBy,
       });
 
       res.status(200).send(reports);
@@ -174,11 +185,11 @@ const BruteReports = {
 
       const user = await prisma.user.findFirst({
         where: { id: authed.id },
-        select: { admin: true },
+        select: { admin: true, moderator: true },
       });
 
-      // Admin only
-      if (!user?.admin) {
+      // Admin or moderator only
+      if (!user?.admin && !user?.moderator) {
         throw new ExpectedError(translate('unauthorized', authed));
       }
 
@@ -194,6 +205,7 @@ const BruteReports = {
               clanId: true,
               level: true,
               ranking: true,
+              userId: true,
               inventory: {
                 select: {
                   id: true,
@@ -213,12 +225,18 @@ const BruteReports = {
         throw new ExpectedError(translate('reportNotFound', authed));
       }
 
+      if (report.handledAt) {
+        throw new ExpectedError(translate('reportAlreadyHandled', authed));
+      }
+
       await prisma.bruteReport.update({
         where: {
           id: report.id,
         },
         data: {
           status: BruteReportStatus.accepted,
+          handlerId: authed.id,
+          handledAt: new Date(),
         },
         select: { id: true },
       });
@@ -239,6 +257,21 @@ const BruteReports = {
         data: {
           willBeDeletedAt: moment.utc().add(3, 'day').toDate(),
           deletionReason: BruteDeletionReason.INNAPROPRIATE_NAME,
+        },
+        select: { id: true },
+      });
+
+      // Send notification to user
+      if (!report.brute.userId) {
+        throw new Error(translate('userNotFound', authed));
+      }
+
+      await prisma.notification.create({
+        data: {
+          userId: report.brute.userId,
+          message: 'bruteSetForDeletion',
+          severity: NotificationSeverity.error,
+          link: `/${report.brute.name}/cell`,
         },
         select: { id: true },
       });
@@ -284,11 +317,11 @@ const BruteReports = {
 
       const user = await prisma.user.findFirst({
         where: { id: authed.id },
-        select: { admin: true },
+        select: { admin: true, moderator: true },
       });
 
-      // Admin only
-      if (!user?.admin) {
+      // Admin or moderator only
+      if (!user?.admin && !user?.moderator) {
         throw new ExpectedError(translate('unauthorized', authed));
       }
 
@@ -302,12 +335,18 @@ const BruteReports = {
         throw new ExpectedError(translate('reportNotFound', authed));
       }
 
+      if (report.handledAt) {
+        throw new ExpectedError(translate('reportAlreadyHandled', authed));
+      }
+
       await prisma.bruteReport.update({
         where: {
           id: report.id,
         },
         data: {
           status: BruteReportStatus.rejected,
+          handlerId: authed.id,
+          handledAt: new Date(),
         },
         select: { id: true },
       });

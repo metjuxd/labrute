@@ -1,5 +1,6 @@
 import {
-  AchievementData, BruteDeletionReason, ExpectedError, LAST_RELEASE, RaretyOrder,
+  AchievementData, BruteDeletionReason, ExpectedError,
+  RaretyOrder,
   UserBannedListResponse,
   UserGetAdminResponse, UserGetNextModifiersResponse, UserGetProfileResponse,
   UserMultipleAccountsListResponse,
@@ -112,6 +113,9 @@ const Users = {
           },
           following: {
             select: { id: true },
+          },
+          notifications: {
+            where: { read: false },
           },
         },
       });
@@ -343,6 +347,7 @@ const Users = {
           name: true,
           gold: true,
           lang: true,
+          lastSeen: true,
           brutes: {
             select: {
               id: true,
@@ -941,45 +946,6 @@ const Users = {
       sendError(res, error);
     }
   },
-  updateLastReleaseSeen: (prisma: PrismaClient) => async (
-    req: Request,
-    res: Response,
-  ) => {
-    try {
-      const authed = await auth(prisma, req);
-
-      const user = await prisma.user.findFirst({
-        where: { id: authed.id },
-        select: { lastReleaseSeen: true },
-      });
-
-      if (!user) {
-        throw new Error(translate('userNotFound', authed));
-      }
-
-      // Check if the user already saw the last release
-      if (user.lastReleaseSeen === LAST_RELEASE.version) {
-        res.send({
-          success: true,
-        });
-        return;
-      }
-
-      // Update last release seen
-      await prisma.user.update({
-        where: { id: authed.id },
-        data: {
-          lastReleaseSeen: LAST_RELEASE.version,
-        },
-      });
-
-      res.send({
-        success: true,
-      });
-    } catch (error) {
-      sendError(res, error);
-    }
-  },
   updateSettings: (prisma: PrismaClient) => async (
     req: Request<never, unknown, UserUpdateSettingsRequest>,
     res: Response,
@@ -987,9 +953,14 @@ const Users = {
     try {
       const user = await auth(prisma, req);
 
-      const { fightSpeed, backgroundMusic, displayVersusPage } = req.body;
+      const {
+        fightSpeed,
+        backgroundMusic,
+        displayVersusPage,
+        displayOpponentDetails,
+      } = req.body;
 
-      if (![1, 2].includes(fightSpeed) || typeof backgroundMusic !== 'boolean' || typeof displayVersusPage !== 'boolean') {
+      if (![1, 2].includes(fightSpeed) || typeof backgroundMusic !== 'boolean' || typeof displayVersusPage !== 'boolean' || typeof displayOpponentDetails !== 'boolean') {
         throw new ExpectedError(translate('invalidParameters', user));
       }
 
@@ -1001,6 +972,7 @@ const Users = {
           fightSpeed,
           backgroundMusic,
           displayVersusPage,
+          displayOpponentDetails,
         },
         select: { id: true },
       });

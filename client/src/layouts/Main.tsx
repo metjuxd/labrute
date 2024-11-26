@@ -1,7 +1,7 @@
-import { getFightsLeft, LAST_RELEASE, UserUpdateSettingsRequest } from '@labrute/core';
-import { EventStatus, Lang } from '@labrute/prisma';
-import { Add, AdminPanelSettings, DarkMode, Info, LightMode, Logout, Menu, MilitaryTech, MoreHoriz, MusicNote, NewReleases, Person, RssFeed, Speed, SportsKabaddi } from '@mui/icons-material';
-import { Badge, Box, Button, Divider, Drawer, GlobalStyles, IconButton, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Alert as MuiAlert, Switch, ThemeProvider, useTheme } from '@mui/material';
+import { getFightsLeft, getGoldNeededForNewBrute, UserUpdateSettingsRequest } from '@labrute/core';
+import { Lang } from '@labrute/prisma';
+import { Add, AdminPanelSettings, DarkMode, Info, LightMode, Logout, Menu, MilitaryTech, MoreHoriz, MusicNote, NewReleases, Person, PersonSearch, Policy, RssFeed, Speed, SportsKabaddi } from '@mui/icons-material';
+import { Badge, Box, Button, Divider, Drawer, GlobalStyles, IconButton, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Alert as MuiAlert, Switch, ThemeProvider, Tooltip, useTheme } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -17,22 +17,27 @@ import dark from '../theme/dark';
 import catchError from '../utils/catchError';
 import Fetch from '../utils/Fetch';
 import Server from '../utils/Server';
+import { useBrute } from '../hooks/useBrute';
 
 const Main = () => {
   const theme = useTheme();
-  const { authing, user, signout, modifiers, updateData, currentEvent } = useAuth();
+  const { authing, user, signout, modifiers, updateData } = useAuth();
   const Alert = useAlert();
   const { t } = useTranslation();
   const colorMode = useContext(ColorModeContext);
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
+  const { brute } = useBrute();
 
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState<UserUpdateSettingsRequest>({
     fightSpeed: 2,
-    backgroundMusic: false,
+    backgroundMusic: true,
     displayVersusPage: true,
+    displayOpponentDetails: false,
   });
+
+  const favoriteCount = user?.brutes.filter((b) => b.favorite).length || 0;
 
   // Sync settings with user
   useEffect(() => {
@@ -42,6 +47,7 @@ const Main = () => {
       fightSpeed: user.fightSpeed,
       backgroundMusic: user.backgroundMusic,
       displayVersusPage: user.displayVersusPage,
+      displayOpponentDetails: user.displayOpponentDetails,
     });
   }, [user]);
 
@@ -79,7 +85,15 @@ const Main = () => {
 
   // Redirect to page
   const goTo = (path: string) => () => {
-    navigate(path);
+    let processedPath = path;
+
+    if (path.includes('{bruteName}')) {
+      if (!brute && !user?.brutes[0]) return;
+
+      processedPath = path.replace('{bruteName}', brute?.name ?? user?.brutes[0]?.name ?? '');
+    }
+
+    navigate(processedPath);
   };
 
   // Toggle setting
@@ -88,6 +102,7 @@ const Main = () => {
       fightSpeed: settings.fightSpeed,
       backgroundMusic: settings.backgroundMusic,
       displayVersusPage: settings.displayVersusPage,
+      displayOpponentDetails: settings.displayOpponentDetails,
     };
 
     if (key === 'fightSpeed') {
@@ -104,6 +119,17 @@ const Main = () => {
         fightSpeed: newSettings.fightSpeed,
         backgroundMusic: newSettings.backgroundMusic,
         displayVersusPage: newSettings.displayVersusPage,
+        displayOpponentDetails: newSettings.displayOpponentDetails,
+      } : null));
+    }).catch(catchError(Alert));
+  };
+
+  // All notifications read
+  const allRead = () => {
+    Server.Notification.setAllRead().then(() => {
+      updateData((d) => (d ? {
+        ...d,
+        notifications: [],
       } : null));
     }).catch(catchError(Alert));
   };
@@ -134,15 +160,28 @@ const Main = () => {
         <Box sx={{
           display: 'flex',
           alignItems: 'center',
+          minWidth: 0,
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          '&::-webkit-scrollbar-track': {
+            bgcolor: 'transparent',
+          },
+          '&::-webkit-scrollbar': {
+            width: '2px',
+            bgcolor: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            bgcolor: theme.palette.topbar.divider,
+          },
         }}
         >
-          {user?.brutes.slice(0, 3).map((brute) => (
+          {user?.brutes.slice(0, favoriteCount || 3).map((b) => (
             <Box
-              key={brute.id}
+              key={b.id}
               mr={1}
             >
               <Badge
-                badgeContent={getFightsLeft(brute, modifiers)}
+                badgeContent={getFightsLeft(b, modifiers)}
                 color="info"
                 componentsProps={{
                   badge: { style: { marginTop: 4 } },
@@ -155,10 +194,10 @@ const Main = () => {
                     borderRadius: '50%',
                     cursor: 'pointer',
                   }}
-                  to={`/${brute.name}/cell`}
+                  to={`/${b.name}/cell`}
                 >
                   <BruteRender
-                    brute={brute}
+                    brute={b}
                   />
                 </Link>
               </Badge>
@@ -175,10 +214,12 @@ const Main = () => {
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {user && (
-            <Text color={theme.palette.topbar.contrast}>
-              {user.gold}
-              <Box component="img" src="/images/gold.png" sx={{ ml: 0.5, width: 8 }} />
-            </Text>
+            <Tooltip title={t('goldNeededForNewBrute', { gold: getGoldNeededForNewBrute(user) })}>
+              <Text color={theme.palette.topbar.contrast} whiteSpace="nowrap">
+                {user.gold}
+                <Box component="img" src="/images/gold.png" sx={{ ml: 0.5, width: 8 }} />
+              </Text>
+            </Tooltip>
           )}
           <Divider
             orientation="vertical"
@@ -189,15 +230,23 @@ const Main = () => {
             }}
           />
           {user ? (
-            <Button
-              onClick={toggleDrawer(true)}
-              endIcon={<Person />}
-              variant="outlined"
-              size="small"
-              color="info"
+            <Badge
+              badgeContent={user.notifications.length}
+              color="success"
+              componentsProps={{
+                badge: { style: { marginTop: 4 } },
+              }}
             >
-              {user.name.length > 10 ? `${user.name.slice(0, 10)}…` : user.name}
-            </Button>
+              <Button
+                onClick={toggleDrawer(true)}
+                endIcon={<Person />}
+                variant="outlined"
+                size="small"
+                color="info"
+              >
+                {user.name.length > 10 ? `${user.name.slice(0, 10)}…` : user.name}
+              </Button>
+            </Badge>
           ) : authing ? null : (
             <Button
               onClick={oauth}
@@ -312,6 +361,14 @@ const Main = () => {
                   iconColor={theme.palette.mode === 'dark' ? theme.palette.topbar.contrastLight : theme.palette.topbar.color}
                   title={theme.palette.mode === 'dark' ? t('lightMode') : t('darkMode')}
                 />
+                {user.moderator && (
+                  <ActionButton
+                    to="/admin-panel/report"
+                    Icon={Policy}
+                    iconColor={theme.palette.info.main}
+                    title={t('moderation')}
+                  />
+                )}
                 {user.admin && (
                   <ActionButton
                     to="/admin-panel"
@@ -365,21 +422,43 @@ const Main = () => {
               p: 1,
             }}
             >
-              <Text h3 color={theme.palette.topbar.colorDark}>{t('notifications')}</Text>
-              <Button size="small" sx={{ color: theme.palette.topbar.contrast }}>{t('allRead')}</Button>
+              <Badge
+                badgeContent={user.notifications.length}
+                color="success"
+              >
+                <Text h3 color={theme.palette.topbar.colorDark}>{t('notifications')}</Text>
+              </Badge>
+              <Button size="small" onClick={allRead} sx={{ color: theme.palette.topbar.contrast }}>{t('allRead')}</Button>
             </Box>
             <ThemeProvider theme={dark}>
-              {/* PATCH NOTES */}
-              {user.lastReleaseSeen !== LAST_RELEASE.version && (
-                <MuiAlert onClick={goTo('/patch-notes')} variant="outlined" severity="warning" icon={false} sx={{ cursor: 'pointer' }}>
-                  <Text>{t('newPatchNotesAvailable')}</Text>
+              {user.notifications.length > 0 ? user.notifications.map((notification) => (
+                <MuiAlert
+                  key={notification.id}
+                  variant="outlined"
+                  severity={notification.severity}
+                  icon={false}
+                  action={notification.link && (
+                    <Button
+                      color={notification.severity}
+                      size="small"
+                      variant="outlined"
+                      onClick={goTo(notification.link)}
+                    >
+                      {t('go')}
+                    </Button>
+                  )}
+                  sx={{
+                    mt: 0,
+                    mb: 1,
+                    '& .MuiAlert-action': {
+                      alignItems: 'center',
+                    }
+                  }}
+                >
+                  <Text>{t(notification.message)}</Text>
                 </MuiAlert>
-              )}
-              {/* EVENT */}
-              {currentEvent?.status === EventStatus.starting && !!user.brutes.length && (
-                <MuiAlert onClick={goTo(`/${user.brutes[0]?.name}/event/${currentEvent.id}`)} variant="outlined" severity="info" icon={false} sx={{ cursor: 'pointer' }}>
-                  <Text>{t('event.started')}</Text>
-                </MuiAlert>
+              )) : (
+                <Text center color={theme.palette.topbar.colorDark} sx={{ py: 2 }}>{t('noNotifications')}</Text>
               )}
               <List
                 dense
@@ -427,6 +506,21 @@ const Main = () => {
                     checked={settings.displayVersusPage}
                     inputProps={{
                       'aria-labelledby': 'switch-displayVersusPage',
+                    }}
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <PersonSearch />
+                  </ListItemIcon>
+                  <ListItemText id="switch-displayOpponentDetails" primary={t('displayOpponentDetails')} />
+                  <Switch
+                    edge="end"
+                    size="small"
+                    onChange={toggle('displayOpponentDetails')}
+                    checked={settings.displayOpponentDetails}
+                    inputProps={{
+                      'aria-labelledby': 'switch-displayOpponentDetails',
                     }}
                   />
                 </ListItem>

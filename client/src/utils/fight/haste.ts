@@ -36,11 +36,8 @@ export const haste = async (
   if (!target) {
     throw new Error('Target not found');
   }
-
   // Play skill SFX
-  void sound.play('skills/fierceBrute', {
-    speed: speed.current,
-  });
+  void sound.play('sfx', { sprite: 'haste' });
 
   const windUpEnded = brute.animation.waitForEvent('strengthen:end');
 
@@ -84,8 +81,8 @@ export const haste = async (
   stagger(target, speed).catch(console.error);
 
   animationEnded.then(() => {
-    // Set target animation to `idle`
-    target.animation.setAnimation('idle');
+    // Set target animation to normal
+    target.animation.setAnimation(target.stunned ? 'death' : 'idle');
   }).catch(console.error);
 
   // Get position 200px away from target
@@ -120,6 +117,6 @@ export const haste = async (
     y,
   });
 
-  // Set brute animation to `idle`
+  // Set brute animation to normal
   brute.animation.setAnimation('idle');
 };

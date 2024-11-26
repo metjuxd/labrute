@@ -8,6 +8,7 @@ import displayDamage from './utils/displayDamage';
 import findFighter, { AnimationFighter } from './utils/findFighter';
 import stagger from './stagger';
 import updateHp from './updateHp';
+import { untrap } from './untrap';
 
 const hammer = async (
   app: Application,
@@ -31,11 +32,11 @@ const hammer = async (
 
   // Set target animation to `grabbed`
   fighter.animation.setAnimation('grabbed');
-
   // Skill SFX
-  void sound.play('skills/hammer', {
-    speed: speed.current,
-  });
+  void sound.play('sfx', { sprite: 'hammer' });
+
+  // Untrap target
+  untrap(app, target);
 
   // Stagger both
   stagger(fighter, speed).catch(console.error);
@@ -75,8 +76,8 @@ const hammer = async (
   // Update HP bar
   updateHp(fighters, target, -step.d, speed, isClanWar);
 
-  // Set target animation to `idle`
-  target.animation.setAnimation('idle');
+  // Set target animation to normal
+  target.animation.setAnimation(target.stunned ? 'death' : 'idle');
 
   // Stagger target
   stagger(target, speed).catch(console.error);

@@ -2,6 +2,132 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.78.2](https://github.com/Zenoo/labrute/compare/labrute-v2.78.1...labrute-v2.78.2) (2024-11-24)
+
+
+### Bug Fixes
+
+* Fight deletion index on logs ([706714a](https://github.com/Zenoo/labrute/commit/706714a70c5e6e484587df394b2043a78c9d57de))
+
+## [2.78.1](https://github.com/Zenoo/labrute/compare/labrute-v2.78.0...labrute-v2.78.1) (2024-11-24)
+
+
+### Bug Fixes
+
+* Disable fight deletion ([e1a7524](https://github.com/Zenoo/labrute/commit/e1a75240d3fc183ff630f527f901a75ccaa9c377))
+* known issues message ID ([14cc8b8](https://github.com/Zenoo/labrute/commit/14cc8b814749c8061adb5f7be2d148d6214d82eb))
+
+## [2.78.0](https://github.com/Zenoo/labrute/compare/labrute-v2.77.0...labrute-v2.78.0) (2024-11-23)
+
+
+### Features
+
+* Anti pet skills revamp Proposal ([#1032](https://github.com/Zenoo/labrute/issues/1032)) ([c8cc1e3](https://github.com/Zenoo/labrute/commit/c8cc1e3e8231248c0aaa9453a9cd57a394df6528))
+* Known issues on Discord. Fixes [#1043](https://github.com/Zenoo/labrute/issues/1043) ([2a35604](https://github.com/Zenoo/labrute/commit/2a3560437a0f8d078535ab23d63da5ba425175a6))
+* User last seen date. Fixes [#1045](https://github.com/Zenoo/labrute/issues/1045) ([f716383](https://github.com/Zenoo/labrute/commit/f7163830e27d8148e19143c7bb76fab3999d93f6))
+
+
+### Bug Fixes
+
+* Additional fight positions. Fixes [#1039](https://github.com/Zenoo/labrute/issues/1039) ([88da327](https://github.com/Zenoo/labrute/commit/88da3276ddfb4463d856ecd06fceb52bc44a1902))
+* Allow event brutes at max level to still fight. Fixes [#1003](https://github.com/Zenoo/labrute/issues/1003) ([1580e64](https://github.com/Zenoo/labrute/commit/1580e640db2005c5543c454038a674d6c9778ce9))
+* Apply ascended skills and pets stat modifiers. Fixes [#1049](https://github.com/Zenoo/labrute/issues/1049) ([2f85556](https://github.com/Zenoo/labrute/commit/2f855568531c6a807e1c63ccde751ec78b1c3f9d))
+* Display followed brutes on feed view. Fixes [#1053](https://github.com/Zenoo/labrute/issues/1053) ([bd2d2f4](https://github.com/Zenoo/labrute/commit/bd2d2f4007ecf22f8a35bd7012b4e23db042a8c8))
+* Display temp skills/weapons in opponent details. Fixes [#1051](https://github.com/Zenoo/labrute/issues/1051) ([5dff8ff](https://github.com/Zenoo/labrute/commit/5dff8fff33fb22542d97c63099f16997b66f89d4))
+* Fight deletion query index ([03c3805](https://github.com/Zenoo/labrute/commit/03c380576a0bb3188720c801e2732cbef82dabf8))
+* Give more than half XP when loosing with an event brute, to account for odd XP required ([e49639b](https://github.com/Zenoo/labrute/commit/e49639b5821cef2b5099cd2569bf4ebee7bd8185))
+* Opponent details toggle not staying on. Fixes [#1052](https://github.com/Zenoo/labrute/issues/1052) ([9749cfc](https://github.com/Zenoo/labrute/commit/9749cfcc88633a04870e0ccc85a143af9f9a7674))
+* Optimize fight deletion query. FIxes [#1048](https://github.com/Zenoo/labrute/issues/1048) ([92fd1e0](https://github.com/Zenoo/labrute/commit/92fd1e04361a571f7c26d61f0be78d45da720684))
+* Order reports by handled date. Fixes [#1046](https://github.com/Zenoo/labrute/issues/1046) ([ef66b1a](https://github.com/Zenoo/labrute/commit/ef66b1acc3ab9f0326b68d2a2f4f93144e920afa))
+* Prevent visual shift when hovering opponents in the arena. Fixes [#1040](https://github.com/Zenoo/labrute/issues/1040) ([1631d6b](https://github.com/Zenoo/labrute/commit/1631d6bc270dd7f4f30a006755caa253928826c5))
+* skip logging common oauth token claim errors ([9fb8e13](https://github.com/Zenoo/labrute/commit/9fb8e13eb69b80908b01e666d174a64f1bb4d36f))
+* User last seen updated each day ([b480f96](https://github.com/Zenoo/labrute/commit/b480f96bb3c918607b24769e4e0cb8e397f09b17))
+* Wrong new event notification link ([f014e9a](https://github.com/Zenoo/labrute/commit/f014e9aefcb55a3c00a5eae95c64c9feaa058108))
+
+## [2.77.0](https://github.com/Zenoo/labrute/compare/labrute-v2.76.2...labrute-v2.77.0) (2024-11-12)
+
+
+### Features
+
+* New arena layout. Fixes [#996](https://github.com/Zenoo/labrute/issues/996) ([5f5a7fe](https://github.com/Zenoo/labrute/commit/5f5a7fed603ee5a373a19d82d38dab1c6090f8f1))
+
+
+### Bug Fixes
+
+* Arena opponents details clickable. [#996](https://github.com/Zenoo/labrute/issues/996) ([59e2898](https://github.com/Zenoo/labrute/commit/59e28981bc896352ab8bceab1714e21bfe949a81))
+
+## [2.76.2](https://github.com/Zenoo/labrute/compare/labrute-v2.76.1...labrute-v2.76.2) (2024-11-11)
+
+
+### Bug Fixes
+
+* Error when accepting a report ([e8adc8c](https://github.com/Zenoo/labrute/commit/e8adc8c1108823deef76727a5b7e9442c31afb23))
+
+## [2.76.1](https://github.com/Zenoo/labrute/compare/labrute-v2.76.0...labrute-v2.76.1) (2024-11-10)
+
+
+### Bug Fixes
+
+* Moderator panel display bug ([de7bc03](https://github.com/Zenoo/labrute/commit/de7bc037fd3bb14a6e37ca9690067032707ff4f2))
+* New combat sounds ([5af10fe](https://github.com/Zenoo/labrute/commit/5af10fea40683d5bbcc3217421844fb770b804b1))
+
+## [2.76.0](https://github.com/Zenoo/labrute/compare/labrute-v2.75.0...labrute-v2.76.0) (2024-11-09)
+
+
+### Features
+
+* Moderator panel. Fixes [#1014](https://github.com/Zenoo/labrute/issues/1014) ([0d1d9b4](https://github.com/Zenoo/labrute/commit/0d1d9b4557406a0ecbc9fa7c528a0ef631a7c6ae))
+
+## [2.75.0](https://github.com/Zenoo/labrute/compare/labrute-v2.74.7...labrute-v2.75.0) (2024-11-09)
+
+
+### Features
+
+* Notification system (display notif count in the topbar). Fixes [#1020](https://github.com/Zenoo/labrute/issues/1020) ([042a38d](https://github.com/Zenoo/labrute/commit/042a38dbfdbdfefd9722a8a9de0bf57ebe597036))
+
+
+### Bug Fixes
+
+* Adjust weapon dexterity for clearer impact ([cec0009](https://github.com/Zenoo/labrute/commit/cec000946f5b45b4f116b91c3cb412fad990faa3))
+* Multiple QoL fixes. See [#1017](https://github.com/Zenoo/labrute/issues/1017) desc ([5adac47](https://github.com/Zenoo/labrute/commit/5adac47338e219bfea5c91103237c781101e0e1b))
+* Notification link visibility ([8540a33](https://github.com/Zenoo/labrute/commit/8540a332336b33bf7b6b05179f283dac81f9273b))
+* Update prisma. Fixes [#1022](https://github.com/Zenoo/labrute/issues/1022) ([0c03a0f](https://github.com/Zenoo/labrute/commit/0c03a0fb71751b2d94bc13a77fa7b24da7099d5c))
+
+## [2.74.7](https://github.com/Zenoo/labrute/compare/labrute-v2.74.6...labrute-v2.74.7) (2024-11-08)
+
+
+### Bug Fixes
+
+* Wrong block calculation ([9f0ee74](https://github.com/Zenoo/labrute/commit/9f0ee74704fb217f22b9f0eb8c3d61514afa9f5a))
+
+## [2.74.6](https://github.com/Zenoo/labrute/compare/labrute-v2.74.5...labrute-v2.74.6) (2024-11-08)
+
+
+### Bug Fixes
+
+* Counter attack triggering without blocking ([b769448](https://github.com/Zenoo/labrute/commit/b769448f5f66164335c74a23d8eb703d6e0c71f6))
+
+## [2.74.5](https://github.com/Zenoo/labrute/compare/labrute-v2.74.4...labrute-v2.74.5) (2024-11-07)
+
+
+### Bug Fixes
+
+* Topbar visual bug ([baaeb59](https://github.com/Zenoo/labrute/commit/baaeb594b001daf14804c48317b767638028160b))
+
+## [2.74.4](https://github.com/Zenoo/labrute/compare/labrute-v2.74.3...labrute-v2.74.4) (2024-11-07)
+
+
+### Bug Fixes
+
+* 30 max favorited brutes. Fixes [#1009](https://github.com/Zenoo/labrute/issues/1009) ([3508f1e](https://github.com/Zenoo/labrute/commit/3508f1e06b924f5e16f16fcb9038c4a1d1813c8e))
+* Decrease sai disarm, increase sai deflect. Fixes [#1001](https://github.com/Zenoo/labrute/issues/1001) ([052a3c4](https://github.com/Zenoo/labrute/commit/052a3c4c411a01e319f9e147110ff2111d696789))
+* Display gold needed for a new Brute. Fixes [#1019](https://github.com/Zenoo/labrute/issues/1019) ([805643f](https://github.com/Zenoo/labrute/commit/805643f3a15dda640ca61ecd85e83792d7a5bad6))
+* Don't trigger reversal when at 0 HP. Fixes [#998](https://github.com/Zenoo/labrute/issues/998) ([b7afbd9](https://github.com/Zenoo/labrute/commit/b7afbd92bc54400bfbe1e8282c886828ea450b56))
+* Get skill modifiers from a single source. Fixes [#1016](https://github.com/Zenoo/labrute/issues/1016) ([e391031](https://github.com/Zenoo/labrute/commit/e391031c6e93176004973451ad5cc6cc6f244e76))
+* Redirect to event ranking from event brute cells. Fixes [#999](https://github.com/Zenoo/labrute/issues/999) ([cfe4478](https://github.com/Zenoo/labrute/commit/cfe447883f4624c2811689adf219545c11740a52))
+* Simplify accuracy use in fights ([099ff45](https://github.com/Zenoo/labrute/commit/099ff45c2a04ca54b6b91de4225e8a08e3102d93))
+* Treat cures Chef's poison. Fixes [#1002](https://github.com/Zenoo/labrute/issues/1002) ([119f8d2](https://github.com/Zenoo/labrute/commit/119f8d289ea8b64bd631bad1affbbffae118029d))
+
 ## [2.74.3](https://github.com/Zenoo/labrute/compare/labrute-v2.74.2...labrute-v2.74.3) (2024-11-01)
 
 

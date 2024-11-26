@@ -37,9 +37,8 @@ const steal = async (
 
   // Set brute animation to `steal`
   brute.animation.setAnimation('steal');
-
   // Play steal SFX
-  void sound.play('skills/thief', { speed: speed.current });
+  void sound.play('sfx', { sprite: 'thief' });
 
   const animationEnded = target.animation.waitForEvent('stolen:end');
 
@@ -58,8 +57,8 @@ const steal = async (
   // Restore scale
   brute.animation.container.scale.x *= -1;
 
-  // Set target animation to `idle`
-  target.animation.setAnimation('idle');
+  // Set target animation to normal
+  target.animation.setAnimation(target.stunned ? 'death' : 'idle');
 
   const { x, y } = getRandomPosition(fighters, brute.team);
 
@@ -73,7 +72,7 @@ const steal = async (
     y,
   });
 
-  // Set brute animation to `idle`
+  // Set brute animation to normal
   brute.animation.setAnimation('idle');
 };
 

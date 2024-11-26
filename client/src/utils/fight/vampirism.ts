@@ -46,9 +46,8 @@ export const vampirism = async (
 
   // Set brute animation to `steal`
   brute.animation.setAnimation('steal');
-
   // Play steal SFX
-  void sound.play('skills/tragicPotion', { speed: speed.current });
+  void sound.play('sfx', { sprite: 'vampirism' });
 
   // Untrap target
   untrap(app, target);
@@ -72,7 +71,7 @@ export const vampirism = async (
   brute.animation.container.scale.x *= -1;
 
   // Set target animation to `idle`
-  target.animation.setAnimation('idle');
+  target.animation.setAnimation(target.stunned ? 'death' : 'idle');
 
   const { x, y } = getRandomPosition(fighters, brute.team);
 

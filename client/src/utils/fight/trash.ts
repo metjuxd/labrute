@@ -42,8 +42,8 @@ const trash = async (
     // Set position
     trashedWeapon.position.set(
       brute.team === 'L'
-        ? brute.animation.container.x + FIGHTER_WIDTH.brute / 4
-        : brute.animation.container.x + FIGHTER_WIDTH.brute * 0.75,
+        ? brute.animation.container.x + FIGHTER_WIDTH.brute * 0.25
+        : brute.animation.container.x + FIGHTER_WIDTH.brute * 0.25,
       brute.animation.container.y - FIGHTER_HEIGHT.brute * 0.5,
     );
 
@@ -84,11 +84,8 @@ const trash = async (
 
   // Set animation to `trash`
   brute.animation.setAnimation('trash');
-
   // Play trash SFX
-  void sound.play('skills/net', {
-    speed: speed.current,
-  });
+  void sound.play('sfx', { sprite: 'net' });
 
   // Remove weapon from brute
   brute.animation.weapon = null;

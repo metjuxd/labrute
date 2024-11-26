@@ -1,15 +1,15 @@
 /* eslint-disable no-void */
 import { FIGHTER_HIT_ANCHOR, HitStep, StepType, WEAPONS_SFX, WeaponById, randomBetween } from '@labrute/core';
 import { OutlineFilter } from '@pixi/filter-outline';
+
 import { sound } from '@pixi/sound';
 import { AnimatedSprite, Application } from 'pixi.js';
-
+import stagger from './stagger';
+import { untrap } from './untrap';
+import updateHp from './updateHp';
 import displayDamage from './utils/displayDamage';
 import findFighter, { AnimationFighter } from './utils/findFighter';
 import getFighterType from './utils/getFighterType';
-import stagger from './stagger';
-import updateHp from './updateHp';
-import { untrap } from './untrap';
 
 const HIT_VFX = ['blood', 'impact-1', 'impact-2'];
 
@@ -50,36 +50,25 @@ const hit = async (
 
   // Set animation to the correct hit animation
   target.animation.setAnimation(animation);
-
   // Play hitting SFX
   if (step.a === StepType.Poison) {
     // Poison SFX
-    void sound.play('hit/poison', {
-      speed: speed.current,
-    });
+    void sound.play('sfx', { sprite: 'poison' });
   } else if (typeof step.w !== 'undefined') {
     // Weapon SFX
-    void sound.play(`hitting/${WEAPONS_SFX[WeaponById[step.w]][randomBetween(0, WEAPONS_SFX[WeaponById[step.w]].length - 1)]}`, {
-      speed: speed.current,
-    });
+    void sound.play('sfx', { sprite: `${WEAPONS_SFX[WeaponById[step.w]][randomBetween(0, WEAPONS_SFX[WeaponById[step.w]].length - 1)]}` });
   } else if (fighter.type === 'pet') {
     // Sword SFX for pets
-    void sound.play('hitting/sword', {
-      speed: speed.current,
-    });
+    void sound.play('sfx', { sprite: 'sword' });
   } else {
     // Fist SFX
-    void sound.play(`hitting/fist${randomBetween(1, 3)}`, {
-      speed: speed.current,
-    });
+    void sound.play('sfx', { sprite: `fist${randomBetween(1, 3)}` });
   }
 
   // Play hit SFX
   if (target.type === 'pet') {
     // Remove numbers from pet name
-    void sound.play(`hit/${target.name.replace(/\d/g, '')}`, {
-      speed: speed.current,
-    });
+    void sound.play('sfx', { sprite: `${target.name.replace(/\d/g, '')}` });
   }
 
   let vfx = null;
@@ -142,12 +131,16 @@ const hit = async (
     ) || [];
   }
 
-  // Set animation to `death` if target is stunned
   if (step.s) {
+    target.stunned = true;
+  } else if (target.stunned && !targetWasTrapped) {
+    target.stunned = false;
+  }
+
+  // Set animation to `death` if target is stunned
+  if (target.stunned) {
     target.animation.setAnimation('death');
-  } else if (targetWasTrapped && target.type === 'brute') {
-    // Stun brutes if trapped
-    target.animation.setAnimation('death');
+    void sound.play('sfx', { sprite: 'chaining' });
   } else {
     // Set animation to `idle`
     target.animation.setAnimation('idle');

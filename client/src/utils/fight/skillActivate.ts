@@ -5,7 +5,9 @@ import { AnimatedSprite, Application } from 'pixi.js';
 import { OutlineFilter } from '@pixi/filter-outline';
 import { sound } from '@pixi/sound';
 import { Easing, Tweener } from 'pixi-tweener';
+import stagger from './stagger';
 import findFighter, { AnimationFighter } from './utils/findFighter';
+import repositionFighters from './utils/repositionFighters';
 
 const skillActivate = async (
   app: Application,
@@ -27,11 +29,15 @@ const skillActivate = async (
     throw new Error('Brute not found');
   }
 
+  // Filter the only activation case outside of neutral (wake up cry)
+  if (step.s !== SkillId.cryOfTheDamned || !brute.stunned) {
+    // Reposition mispositionned fighters before skillActivate
+    await repositionFighters(app, fighters, speed);
+  }
+
   // Play skill SFX
   if ([SkillId.cryOfTheDamned, SkillId.fierceBrute].includes(step.s)) {
-    void sound.play(`skills/${SkillById[step.s]}`, {
-      speed: speed.current,
-    });
+    void sound.play('sfx', { sprite: `${SkillById[step.s]}` });
   }
 
   if ([SkillId.cryOfTheDamned, SkillId.fierceBrute, SkillId.hammer].includes(step.s)) {
@@ -73,7 +79,7 @@ const skillActivate = async (
 
         // Set cry position
         cry.position.set(
-          brute.animation.container.x + (i % 2) * 20,
+          brute.animation.container.x + (i % 2) * 20 - (brute.team === 'L' ? 0 : 140),
           brute.animation.container.y - FIGHTER_HEIGHT.brute / 2 + i * 20,
         );
 
@@ -106,8 +112,28 @@ const skillActivate = async (
       }
     }
 
-    // Wait for animations to complete
-    await Promise.all(animations);
+    // Stagger remaining pets
+    // Don't do it if brute is stunned as it would cancel a pet's moveBack
+    if (step.p && !brute.stunned) {
+      for (const petIndex of step.p) {
+        // Get pet
+        const pet = findFighter(fighters, petIndex);
+        if (!pet) {
+          throw new Error('Pet not found');
+        }
+        animations.push(stagger(pet, speed));
+      }
+    }
+
+    if (brute.stunned) {
+      // If brute is stunned, it means it is repulsing the opponent
+      // in this case the animation must be played while opponent runs away
+      brute.stunned = false;
+      void Promise.all(animations);
+    } else {
+      // Else, wait for animations to complete
+      await Promise.all(animations);
+    }
   }
 
   // Flash flood

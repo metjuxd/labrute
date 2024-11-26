@@ -43,11 +43,8 @@ const bomb = async (
 
   // Set animation to `launch`
   fighter.animation.setAnimation('launch');
-
   // Play launch SFX
-  void sound.play('skills/net', {
-    speed: speed.current,
-  });
+  void sound.play('sfx', { sprite: 'net' });
 
   // Create bomb sprite
   const bombSprite = new AnimatedSprite(spritesheet.animations.bomb || []);
@@ -132,9 +129,7 @@ const bomb = async (
   fighter.animation.setAnimation('idle');
 
   // Play bomb SFX
-  void sound.play('skills/bomb', {
-    speed: speed.current,
-  });
+  void sound.play('sfx', { sprite: 'bomb' });
 
   // Get targets
   const targets = step.t.map((t) => {
@@ -173,8 +168,8 @@ const bomb = async (
     staggers.push(stagger(target, speed)
       .then(() => {
         if (target.animation.animation.startsWith('hit')) {
-          // Set animation to `idle`
-          target.animation.setAnimation('idle');
+          // Set animation to normal
+          target.animation.setAnimation(target.stunned ? 'death' : 'idle');
         }
       }));
   }

@@ -7,6 +7,7 @@ const {
   makeStrictEnum,
   Public,
   getRuntime,
+  skip
 } = require('./runtime/index-browser.js')
 
 
@@ -16,12 +17,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 5.18.0
- * Query Engine version: 4c784e32044a8a016d99474bd02a3b6123742169
+ * Prisma Client JS version: 5.22.0
+ * Query Engine version: 605197351a3c8bdd595af2d2a9bc3025bca48ea2
  */
 Prisma.prismaVersion = {
-  client: "5.18.0",
-  engine: "4c784e32044a8a016d99474bd02a3b6123742169"
+  client: "5.22.0",
+  engine: "605197351a3c8bdd595af2d2a9bc3025bca48ea2"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -108,6 +109,8 @@ Prisma.NullTypes = {
   AnyNull: objectEnumValues.classes.AnyNull
 }
 
+
+
 /**
  * Enums
  */
@@ -134,8 +137,9 @@ exports.Prisma.UserScalarFieldEnum = {
   ips: 'ips',
   bannedAt: 'bannedAt',
   banReason: 'banReason',
-  lastReleaseSeen: 'lastReleaseSeen',
-  displayVersusPage: 'displayVersusPage'
+  displayVersusPage: 'displayVersusPage',
+  displayOpponentDetails: 'displayOpponentDetails',
+  lastSeen: 'lastSeen'
 };
 
 exports.Prisma.RelationLoadStrategy = {
@@ -225,7 +229,8 @@ exports.Prisma.FightScalarFieldEnum = {
   tournamentStep: 'tournamentStep',
   modifiers: 'modifiers',
   background: 'background',
-  clanWarId: 'clanWarId'
+  clanWarId: 'clanWarId',
+  favoriteCount: 'favoriteCount'
 };
 
 exports.Prisma.LogScalarFieldEnum = {
@@ -309,7 +314,9 @@ exports.Prisma.BruteReportScalarFieldEnum = {
   reason: 'reason',
   count: 'count',
   date: 'date',
-  status: 'status'
+  status: 'status',
+  handlerId: 'handlerId',
+  handledAt: 'handledAt'
 };
 
 exports.Prisma.ServerStateScalarFieldEnum = {
@@ -413,6 +420,16 @@ exports.Prisma.EventScalarFieldEnum = {
   winnerId: 'winnerId',
   finishedAt: 'finishedAt',
   sortedBrutes: 'sortedBrutes'
+};
+
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  message: 'message',
+  severity: 'severity',
+  link: 'link',
+  read: 'read',
+  date: 'date'
 };
 
 exports.Prisma.SortOrder = {
@@ -747,6 +764,13 @@ exports.EventStatus = exports.$Enums.EventStatus = {
   finished: 'finished'
 };
 
+exports.NotificationSeverity = exports.$Enums.NotificationSeverity = {
+  info: 'info',
+  success: 'success',
+  warning: 'warning',
+  error: 'error'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Brute: 'Brute',
@@ -772,7 +796,8 @@ exports.Prisma.ModelName = {
   ClanWarFighters: 'ClanWarFighters',
   InventoryItem: 'InventoryItem',
   Release: 'Release',
-  Event: 'Event'
+  Event: 'Event',
+  Notification: 'Notification'
 };
 
 /**

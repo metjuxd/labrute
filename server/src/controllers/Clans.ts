@@ -3,6 +3,7 @@ import {
   ClanCreateResponse,
   ClanGetResponse, ClanGetThreadResponse,
   ClanGetThreadsResponse, ClanListResponse, ClanSort, ExpectedError, bosses, getFightsLeft,
+  isUuid,
 } from '@labrute/core';
 import {
   BossName,
@@ -17,7 +18,6 @@ import { ilike } from '../utils/ilike.js';
 import sendError from '../utils/sendError.js';
 import ServerState from '../utils/ServerState.js';
 import translate from '../utils/translate.js';
-import isUuid from '../utils/uuid.js';
 
 const Clans = {
   list: (prisma: PrismaClient) => async (
@@ -209,12 +209,26 @@ const Clans = {
             },
           },
           brutes: {
+            include: {
+              user: {
+                select: {
+                  lastSeen: true,
+                },
+              },
+            },
             orderBy: [
               { ranking: 'asc' },
               { level: 'desc' },
             ],
           },
           joinRequests: {
+            include: {
+              user: {
+                select: {
+                  lastSeen: true,
+                },
+              },
+            },
             orderBy: [
               { ranking: 'asc' },
               { level: 'desc' },

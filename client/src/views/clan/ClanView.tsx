@@ -1,5 +1,5 @@
 import { BruteRanking, BrutesGetClanIdAsMasterResponse, ClanGetResponse, bosses, getFightsLeft } from '@labrute/core';
-import { Brute, ClanWarStatus, ClanWarType } from '@labrute/prisma';
+import { BossName, Brute, ClanWarStatus, ClanWarType } from '@labrute/prisma';
 import { HighlightOff, History, PlayCircleOutline } from '@mui/icons-material';
 import { Box, Button, ButtonGroup, Checkbox, FormControlLabel, Paper, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, useTheme } from '@mui/material';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -17,6 +17,8 @@ import { useBrute } from '../../hooks/useBrute';
 import { useConfirm } from '../../hooks/useConfirm';
 import Server from '../../utils/Server';
 import catchError from '../../utils/catchError';
+import moment from 'moment';
+import { ActivityStatus } from '../../components/ActivityStatus';
 
 enum SortOption { Default = 'default', Level = 'level', Rank = 'ranking', Victories = 'victories', Damage = 'damage' }
 
@@ -37,6 +39,19 @@ const ClanView = () => {
   const [masterOfClan, setMasterOfClan] = useState<BrutesGetClanIdAsMasterResponse['id']>(null);
 
   const boss = useMemo(() => clan && bosses.find((b) => b.name === clan.boss), [clan]);
+  const displayedBossName = useMemo(() => {
+    // Normal day display
+    if (!moment().isSame(moment('04-01', 'MM-DD'), 'day')) return clan?.boss;
+    // April Fools display
+    switch (clan?.boss) {
+      case BossName.EmberFang:
+        return 'EmberFool';
+      case BossName.GoldClaw:
+        return 'GoldClown';
+      default:
+        return clan?.boss;
+    }
+  }, [clan]);
 
   const clanWar = clan?.attacks[0] || clan?.defenses[0];
 
@@ -153,7 +168,7 @@ const ClanView = () => {
   };
 
   // Accept join request
-  const acceptJoin = (requester: Brute) => () => {
+  const acceptJoin = (requester: ClanGetResponse['brutes'][number]) => () => {
     if (!user || !clan) return;
 
     Confirm.open(t('acceptJoinRequest'), t('confirmAcceptRequest'), () => {
@@ -217,7 +232,7 @@ const ClanView = () => {
   };
 
   // Set as clan master
-  const setMaster = (clanBrute: Brute) => (e: React.MouseEvent) => {
+  const setMaster = (clanBrute: ClanGetResponse['brutes'][number]) => (e: React.MouseEvent) => {
     e.stopPropagation();
 
     if (!clan) return;
@@ -657,7 +672,7 @@ const ClanView = () => {
           <Box sx={{ textAlign: 'center' }}>
             <Box sx={{ display: 'inline-block' }}>
               <Text h4 bold color="secondary" center>{t('boss')}</Text>
-              <Text bold h5 smallCaps color="primary.text">{clan.boss}</Text>
+              <Text bold h5 smallCaps color="primary.text">{displayedBossName}</Text>
               {/* HP BAR */}
               <Tooltip title={`${boss.hp * boss.count - clan.damageOnBoss} / ${boss.hp * boss.count}`}>
                 <Box sx={{
@@ -830,6 +845,9 @@ const ClanView = () => {
                   </Box>
                 </Box>
                 <Text bold smallCaps color="text.primary">
+                  {clanBrute.user && (
+                    <ActivityStatus user={clanBrute.user} sx={{ fontSize: 10, mr: 0.5 }} />
+                  )}
                   {t('level')}
                   <Text component="span" bold color="secondary"> {clanBrute.level}</Text>
                 </Text>

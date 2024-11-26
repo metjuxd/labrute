@@ -48,7 +48,7 @@ const arrive = async (
 
   // Wait 0.25s before playing arrive SFX
   setTimeout(() => {
-    void sound.play('arrive', { speed: speed.current });
+    void sound.play('sfx', { sprite: 'arrive' });
   }, 250 / speed.current);
 
   // Move fighter to the position
@@ -83,7 +83,7 @@ const arrive = async (
   // Play dust
   dustSprite.play();
 
-  // Wait for animation to end before going further
+  // Wait for animation to end
   await animationEnded;
 
   // Set animation to `idle`

@@ -13,6 +13,7 @@ import {
   getWinsNeededToRankUp,
   GlobalTournamentGoldReward,
   GlobalTournamentXpReward,
+  knownIssues,
   LAST_RELEASE,
   randomBetween,
   weightedRandom,
@@ -306,7 +307,7 @@ const handleDailyTournaments = async (
           throw new Error(`Brute not found: ${brute1?.id || brute2?.id}`);
         }
 
-        if (brute1.name === brute2.name) {
+        if (brute1.id === brute2.id) {
           throw new Error('Attempting to fight a brute against itself');
         }
 
@@ -581,7 +582,7 @@ const handleGlobalTournament = async (
         throw new Error(`Brute not found: ${brute1?.id || brute2?.id}`);
       }
 
-      if (brute1.name === brute2.name) {
+      if (brute1.id === brute2.id) {
         throw new Error('Attempting to fight a brute against itself');
       }
 
@@ -1089,9 +1090,19 @@ const handleReleases = async (prisma: PrismaClient) => {
     return;
   }
 
-  // Send release notification
+  // Send release notifications
   try {
+    // Discord notification
     await DISCORD.sendRelease(LAST_RELEASE);
+
+    // User notifications
+    const notifCount = await prisma.$executeRaw`
+      INSERT INTO "Notification" ("userId", "message", "link", "severity")
+      SELECT id, 'newPatchNotesAvailable', '/patch-notes', 'warning'
+      FROM "User";
+    `;
+
+    LOGGER.log(`Sent ${notifCount} release notifications`);
 
     // Store latest release
     await prisma.release.create({
@@ -1118,25 +1129,31 @@ const cleanup = async (prisma: PrismaClient) => {
     },
   });
 
-  // Fight deletion is disabled since it times out the job
+  // Delete notifications older than 30 days
+  await prisma.notification.deleteMany({
+    where: {
+      date: {
+        lt: moment.utc().subtract(30, 'day').toDate(),
+      },
+    },
+  });
+
   if (false) {
+    // Fight deletion is disabled since it times out the job
     const now = moment.utc().valueOf();
 
     // Delete non tournament/war or favorited fights older than 30 days
-    const fights = await prisma.fight.deleteMany({
-      where: {
-        date: {
-          lt: moment.utc().subtract(30, 'day').toDate(),
-        },
-        tournamentId: null,
-        clanWarId: null,
-        favoritedBy: {
-          none: {},
-        },
-      },
-    });
+    const fights = await prisma.$executeRaw`
+        DELETE FROM "Fight"
+        WHERE "date" < ${moment.utc().subtract(30, 'day').toDate()}
+        AND "tournamentId" IS NULL
+        AND "clanWarId" IS NULL
+        AND "favoriteCount" = 0;
+      `;
 
-    LOGGER.log(`${moment.utc().valueOf() - now}ms to delete ${fights.count} fights older than 30 days`);
+    if (fights) {
+      LOGGER.log(`${moment.utc().valueOf() - now}ms to delete ${fights} fights older than 30 days`);
+    }
   }
 };
 
@@ -1550,14 +1567,21 @@ const handleEventFinish = async (prisma: PrismaClient) => {
 
   // Create new event
   const maxLevel = randomBetween(20, 120);
-  await prisma.event.create({
+  const newEvent = await prisma.event.create({
     data: {
       maxLevel,
     },
     select: { id: true },
   });
 
-  LOGGER.log(`New event created with max level ${maxLevel}`);
+  // Notify users
+  const notifications = await prisma.$executeRaw`
+    INSERT INTO "Notification" ("userId", "message", "link")
+    SELECT id, 'event.started', ${`{bruteName}/event/${newEvent.id}`}
+    FROM "User";
+  `;
+
+  LOGGER.log(`New event created with max level ${maxLevel}. ${notifications} notifications sent`);
 };
 
 const handleEventTournament = async (
@@ -1917,6 +1941,9 @@ const dailyJob = (prisma: PrismaClient) => async () => {
 
     // Clean up DB
     await cleanup(prisma);
+
+    // Update known issues
+    await DISCORD.updateKnownIssues(knownIssues);
 
     LOGGER.info('Daily job completed');
   } catch (error: unknown) {

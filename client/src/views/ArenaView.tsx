@@ -1,5 +1,5 @@
 import { BrutesGetOpponentsResponse, getFightsLeft, getXPNeeded } from '@labrute/core';
-import { Box, Button, Grid, Paper, useMediaQuery, useTheme } from '@mui/material';
+import { Alert as MuiAlert, Box, Button, Grid, Paper, useMediaQuery, useTheme } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
@@ -7,15 +7,15 @@ import BruteBodyAndStats from '../components/Brute/BruteBodyAndStats';
 import BruteButton from '../components/Brute/BruteButton';
 import BruteLevelAndXP from '../components/Brute/BruteLevelAndXP';
 import Link from '../components/Link';
+import Loader from '../components/Loader';
 import Page from '../components/Page';
 import StyledInput from '../components/StyledInput';
 import Text from '../components/Text';
 import { useAlert } from '../hooks/useAlert';
+import { useAuth } from '../hooks/useAuth';
 import { useBrute } from '../hooks/useBrute';
 import Server from '../utils/Server';
 import catchError from '../utils/catchError';
-import { useAuth } from '../hooks/useAuth';
-import Loader from '../components/Loader';
 
 const ArenaView = () => {
   const { t } = useTranslation();
@@ -25,7 +25,7 @@ const ArenaView = () => {
   const theme = useTheme();
   const isMd = useMediaQuery(theme.breakpoints.down('md'));
   const { brute, updateBrute } = useBrute();
-  const { modifiers, user, updateData } = useAuth();
+  const { modifiers, user, updateData, currentEvent } = useAuth();
 
   const [opponents, setOpponents] = useState<BrutesGetOpponentsResponse>([]);
   const [search, setSearch] = useState('');
@@ -47,8 +47,11 @@ const ArenaView = () => {
 
     // Redirect to cell if XP is too much
     if (xpNeededForNextLevel && brute.xp >= xpNeededForNextLevel) {
-      navigate(`/${brute.name}/cell`);
-      return cleanup;
+      // Don't redirect if event brute who reached max level
+      if (!brute.eventId || brute.level < (currentEvent?.maxLevel ?? 999)) {
+        navigate(`/${brute.name}/cell`);
+        return cleanup;
+      }
     }
 
     // Redirect to cell if brute doesn't have enough fights left
@@ -63,7 +66,7 @@ const ArenaView = () => {
     }).catch(catchError(Alert));
 
     return cleanup;
-  }, [Alert, brute, fightsLeft, navigate, xpNeededForNextLevel]);
+  }, [Alert, brute, currentEvent?.maxLevel, fightsLeft, navigate, xpNeededForNextLevel]);
 
   const changeSearch = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -144,6 +147,12 @@ const ArenaView = () => {
         <Text bold color="secondary">{fightsLeft > 1 ? t('youHaveXFightsLeft', { value: getFightsLeft(brute, modifiers) }) : t('youHaveOneFightLeft')}</Text>
       </Paper>
       <Paper sx={{ bgcolor: 'background.paperLight', mt: -2 }}>
+        {/* No XP won for event brutes at max level */}
+        {brute.eventId && brute.level >= (currentEvent?.maxLevel ?? 999) && (
+          <MuiAlert severity="info" sx={{ borderRadius: 0 }}>
+            {t('arena.noXP')}
+          </MuiAlert>
+        )}
         <Grid container spacing={1}>
           <Grid item xs={12} md={4}>
             <Text h4 bold color="secondary" center>{brute.name}</Text>
@@ -164,12 +173,18 @@ const ArenaView = () => {
           </Grid>
           <Grid item xs={12} md={5.6}>
             {loading ? <Loader height={346} /> : (
-              <Grid container spacing={1}>
+              <Grid container spacing={1} mb={3}>
                 {opponents.map((opponent) => (
                   <Grid item key={opponent.name} xs={12} sm={6}>
                     <BruteButton
                       brute={opponent}
                       onClick={goToVersus(opponent.name)}
+                      displayDetails={user?.displayOpponentDetails}
+                      shiftMargin
+                      sx={{
+                        width: 185,
+                        height: 1,
+                      }}
                     />
                   </Grid>
                 ))}

@@ -5,6 +5,7 @@ import { Easing, Tweener } from 'pixi-tweener';
 import { Application } from 'pixi.js';
 import findFighter, { AnimationFighter } from './utils/findFighter';
 import getFighterType from './utils/getFighterType';
+import repositionFighters from './utils/repositionFighters';
 
 const moveTo = async (
   app: Application,
@@ -21,15 +22,18 @@ const moveTo = async (
     throw new Error('Target not found');
   }
 
+  // Filter the only moveTo case outside of neutral (melee repositioning)
+  if (!step.r) {
+    // Reposition mispositionned fighters before moveTo
+    await repositionFighters(app, fighters, speed);
+  }
+
   // Set animation to `run`
   fighter.animation.setAnimation('run');
-
   // Play running SFX
   if (fighter.type === 'pet') {
     // Remove numbers from pet name
-    void sound.play(`move/${fighter.name.replace(/\d/g, '')}`, {
-      speed: speed.current,
-    });
+    void sound.play('sfx', { sprite: `${fighter.name.replace(/\d/g, '')}` });
   }
 
   const targetX = target.animation.container.x;
@@ -62,7 +66,8 @@ const moveTo = async (
     modifier += reach * 16;
   }
 
-  const duration = step.r ? 0.2 : 0.5;
+  // Smaller duration if target were already close
+  const duration = Math.abs(targetX - fighter.animation.container.x) < 150 ? 0.2 : 0.5;
 
   // Move fighter to the position
   await Tweener.add({

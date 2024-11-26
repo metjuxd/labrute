@@ -1,4 +1,4 @@
-import { Achievement, AchievementName, BossDamage, Brute, BruteReportReason, BruteReportStatus, Clan, ClanPost, ClanThread, ClanWar, ClanWarFighters, DestinyChoice, Event, Fight, FightModifier, InventoryItem, Lang, Log, Prisma, Tournament, User } from '@labrute/prisma';
+import { Achievement, AchievementName, BossDamage, Brute, BruteReportReason, BruteReportStatus, Clan, ClanPost, ClanThread, ClanWar, ClanWarFighters, DestinyChoice, Event, Fight, FightModifier, InventoryItem, Lang, Log, Notification, Prisma, Tournament, User } from '@labrute/prisma';
 import Version from './Version';
 import applySkillModifiers from './brute/applySkillModifiers';
 import availableBodyParts from './brute/availableBodyParts';
@@ -13,7 +13,6 @@ import getRandomBody from './brute/getRandomBody';
 import getRandomBonus from './brute/getRandomBonus';
 import getRandomColors from './brute/getRandomColors';
 import { isNameValid } from './brute/isNameValid';
-import skills from './brute/skills';
 import updateBruteData from './brute/updateBruteData';
 import weapons from './brute/weapons';
 import { BruteReportWithNames, DestinyBranch, UserWithBrutesBodyColor } from './types';
@@ -48,6 +47,7 @@ export * from './types';
 export * from './utils/isUuid';
 export * from './utils/randomItem';
 export * from './Elo';
+export * from './knownIssues';
 export {
   adjustColor, applySkillModifiers,
   availableBodyParts, Boss, bosses, canLevelUp,
@@ -57,7 +57,7 @@ export {
   getMaxFightsPerDay,
   getRandomBody,
   getRandomBonus,
-  getRandomColors, hexToRgba, isNameValid, pad, randomBetween, skills,
+  getRandomColors, hexToRgba, isNameValid, pad, randomBetween,
   updateBruteData, Version, weapons,
   weightedRandom
 };
@@ -93,7 +93,7 @@ export type BrutesGetOpponentsResponse = Pick<Brute,
   'agilityValue' |
   'speedStat' |
   'speedModifier' |
-  'speedValue' | 'body' | 'colors' | 'skills' | 'eventId'>[];
+  'speedValue' | 'body' | 'colors' | 'skills' | 'weapons' | 'pets' | 'eventId'>[];
 export type BrutesExistsResponse = {
   exists: false
 } | {
@@ -155,6 +155,7 @@ export type UsersAuthenticateResponse = {
 
 export type BruteReportsListRequest = {
   status: BruteReportStatus,
+  page: string,
 };
 export type BruteReportsListResponse = BruteReportWithNames[];
 
@@ -182,8 +183,12 @@ export type ClanListResponse = (Clan & {
 export type ClanCreateResponse = Pick<Clan, 'id' | 'name'>;
 export type ClanGetResponse = Clan & {
   master: BruteForRender | null,
-  brutes: Brute[],
-  joinRequests: Brute[],
+  brutes: (Brute & {
+    user: Pick<User, 'lastSeen'> | null,
+  })[],
+  joinRequests: (Brute & {
+    user: Pick<User, 'lastSeen'> | null,
+  })[],
   bossDamages: (Pick<BossDamage, 'damage'> & {
     brute: Pick<Brute, 'id' | 'name'>,
   })[],
@@ -217,7 +222,7 @@ export type ClanGetThreadResponse = ClanThread & {
 export type UserGetAdminResponse = User & {
   achievements: Pick<Achievement, 'name' | 'count'>[],
 };
-export type UserGetProfileResponse = Pick<User, 'id' | 'name' | 'gold' | 'lang'> & {
+export type UserGetProfileResponse = Pick<User, 'id' | 'name' | 'gold' | 'lang' | 'lastSeen'> & {
   brutes: Pick<
     Brute,
     'id' |
@@ -251,7 +256,7 @@ export type UserGetProfileResponse = Pick<User, 'id' | 'name' | 'gold' | 'lang'>
 };
 export type UserBannedListResponse = Pick<User, 'id' | 'name' | 'bannedAt' | 'banReason'>[];
 export type UserMultipleAccountsListResponse = { ip: string, users: string[] }[];
-export type UserUpdateSettingsRequest = Pick<User, 'fightSpeed' | 'backgroundMusic' | 'displayVersusPage'>;
+export type UserUpdateSettingsRequest = Pick<User, 'fightSpeed' | 'backgroundMusic' | 'displayVersusPage' | 'displayOpponentDetails'>;
 
 export type AchievementGetRankingsResponse = {
   name: AchievementName,
@@ -285,10 +290,13 @@ export type UserGetNextModifiersResponse = FightModifier[];
 export type LogListResponse = (Log & {
   currentBrute: Pick<Brute, 'name'>,
 })[];
-export type LogGetForUserFeedResponse = (Log & {
-  currentBrute: Pick<Brute, 'name'>,
-  destinyChoice: DestinyChoice | null,
-})[];
+export type LogGetForUserFeedResponse = {
+  brutes: BruteForRender[],
+  logs: (Log & {
+    currentBrute: Pick<Brute, 'name'>,
+    destinyChoice: DestinyChoice | null,
+  })[],
+};
 
 export type ClanWarCreateResponse = Pick<ClanWar, 'id'>;
 export type ClanWarUpdateFightersResponse = Pick<Brute, 'id'>[];
@@ -325,3 +333,5 @@ export type EventGetResponse = {
   fights: Pick<Fight, 'id' | 'tournamentStep' | 'winner' | 'fighters' | 'brute1Id' | 'brute2Id'>[],
   lastRounds: Pick<Fight, 'id' | 'tournamentStep' | 'winner' | 'fighters' | 'brute1Id' | 'brute2Id'>[],
 };
+
+export type NotificationListResponse = Notification[];
